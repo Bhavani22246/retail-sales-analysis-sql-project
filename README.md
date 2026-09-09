@@ -4,38 +4,280 @@
 
 **Project Title**: Retail Sales Analysis  
 **Level**: Beginner  
-**Database**: `sql_project_p1`  
-**Table**: `retail`  
-**Tool**: MySQL / MySQL Workbench
+**Database**: `sql_project_p1`
 
-This project is designed to demonstrate SQL skills and techniques typically used by data analysts to explore, clean, and analyze retail sales data.
-
-The project involves setting up a retail sales database, importing retail sales data, performing exploratory data analysis (EDA), checking data quality, and answering specific business questions using SQL queries.
-
-This project is ideal for beginners who are starting their journey in Data Analytics and want to build a strong foundation in SQL and MySQL.
-
----
+This project is designed to demonstrate SQL skills and techniques typically used by data analysts to explore, clean, and analyze retail sales data. The project involves setting up a retail sales database, performing exploratory data analysis (EDA), checking data quality, and answering specific business questions through SQL queries. This project is ideal for those who are starting their journey in data analysis and want to build a solid foundation in SQL.
 
 ## Objectives
 
-1. **Set up a retail sales database**: Create a database and table to store retail sales data.
-2. **Import the Dataset**: Load the provided retail sales CSV dataset into MySQL.
-3. **Data Quality Check**: Identify records containing missing or NULL values.
-4. **Exploratory Data Analysis (EDA)**: Explore the dataset using SQL queries.
-5. **Business Analysis**: Answer business questions using SQL.
-6. **Generate Insights**: Analyze sales, customers, categories, time periods, and transactions.
+1. **Set up a retail sales database**: Create and populate a retail sales database with the provided sales data.
+2. **Data Quality Check**: Identify records containing missing or null values in the dataset.
+3. **Exploratory Data Analysis (EDA)**: Perform basic exploratory data analysis to understand the dataset.
+4. **Business Analysis**: Use SQL to answer specific business questions and derive insights from the sales data.
 
----
+## Project Structure
 
-# Project Structure
+### 1. Database Setup
 
-## 1. Database Setup
-
-The project starts by creating a database named `sql_project_p1`.
+- **Database Creation**: The project starts by creating a database named `sql_project_p1`.
+- **Table Creation**: A table named `retail` is created to store the sales data. The table structure includes columns for transaction ID, sale date, sale time, customer ID, gender, age, product category, quantity sold, price per unit, cost of goods sold (COGS), and total sale amount.
 
 ```sql
 CREATE DATABASE IF NOT EXISTS sql_project_p1;
 
+USE sql_project_p1;
+
+CREATE TABLE retail
+(
+    transactions_id INT PRIMARY KEY,
+    sale_date DATE,
+    sale_time TIME,
+    customer_id INT,
+    gender VARCHAR(10),
+    age INT,
+    category VARCHAR(50),
+    quantity INT,
+    price_per_unit FLOAT,
+    cogs FLOAT,
+    total_sale FLOAT
+);
+2. Data Exploration & Cleaning
+Record Count: Determine the total number of records in the dataset.
+Customer Count: Find out how many unique customers are in the dataset.
+Category Count: Identify all unique product categories in the dataset.
+Null Value Check: Check for any null values in the dataset.
+SELECT COUNT(*) AS total_rows
+FROM retail;
+
+SELECT COUNT(DISTINCT customer_id) AS unique_customers
+FROM retail;
+
+SELECT COUNT(DISTINCT category) AS unique_categories
+FROM retail;
+
+SELECT DISTINCT category
+FROM retail;
+
+SELECT *
+FROM retail
+WHERE
+    sale_date IS NULL
+    OR sale_time IS NULL
+    OR customer_id IS NULL
+    OR gender IS NULL
+    OR age IS NULL
+    OR category IS NULL
+    OR quantity IS NULL
+    OR price_per_unit IS NULL
+    OR cogs IS NULL
+    OR total_sale IS NULL;
+3. Data Analysis & Findings
+
+The following SQL queries were developed to answer specific business questions:
+
+Write a SQL query to retrieve all columns for sales made on '2022-11-05':
+SELECT *
+FROM retail
+WHERE sale_date = '2022-11-05';
+Write a SQL query to retrieve all transactions where the category is 'Clothing' and the quantity sold is at least 4 in the month of Nov-2022:
+SELECT *
+FROM retail
+WHERE category = 'Clothing'
+  AND DATE_FORMAT(sale_date, '%Y-%m') = '2022-11'
+  AND quantity >= 4;
+Write a SQL query to calculate the total sales (total_sale) for each category:
+SELECT
+    category,
+    SUM(total_sale) AS net_sale,
+    COUNT(*) AS total_orders
+FROM retail
+GROUP BY category
+ORDER BY net_sale DESC;
+Write a SQL query to find the average age of customers who purchased items from the 'Beauty' category:
+SELECT
+    ROUND(AVG(age), 2) AS avg_age
+FROM retail
+WHERE category = 'Beauty';
+Write a SQL query to find all transactions where the total_sale is greater than 1000:
+SELECT *
+FROM retail
+WHERE total_sale > 1000;
+Write a SQL query to find the total number of transactions made by each gender in each category:
+SELECT
+    category,
+    gender,
+    COUNT(*) AS total_transactions
+FROM retail
+GROUP BY category, gender
+ORDER BY category, gender;
+Write a SQL query to calculate the average sale for each month and find out the best-selling month in each year:
+SELECT
+    year,
+    month,
+    avg_sale
+FROM
+(
+    SELECT
+        YEAR(sale_date) AS year,
+        MONTH(sale_date) AS month,
+        AVG(total_sale) AS avg_sale,
+        RANK() OVER
+        (
+            PARTITION BY YEAR(sale_date)
+            ORDER BY AVG(total_sale) DESC
+        ) AS sale_rank
+    FROM retail
+    GROUP BY YEAR(sale_date), MONTH(sale_date)
+) AS t1
+WHERE sale_rank = 1;
+Write a SQL query to find the top 5 customers based on the highest total sales:
+SELECT
+    customer_id,
+    SUM(total_sale) AS total_sales
+FROM retail
+GROUP BY customer_id
+ORDER BY total_sales DESC
+LIMIT 5;
+Write a SQL query to find the number of unique customers who purchased items from each category:
+SELECT
+    category,
+    COUNT(DISTINCT customer_id) AS unique_customers
+FROM retail
+GROUP BY category
+ORDER BY unique_customers DESC;
+Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17):
+SELECT
+    CASE
+        WHEN HOUR(sale_time) < 12 THEN 'Morning'
+        WHEN HOUR(sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
+        ELSE 'Evening'
+    END AS shift,
+    COUNT(*) AS total_orders
+FROM retail
+GROUP BY shift
+ORDER BY total_orders DESC;
+Additional SQL Queries
+
+The following queries were also used to practice SQL and explore the retail sales dataset.
+
+Display the Table Structure
+DESCRIBE retail;
+Display All Records
+SELECT *
+FROM retail;
+Find Transactions Above 1000
+SELECT *
+FROM retail
+WHERE total_sale > 1000;
+Find Sales for a Particular Category
+SELECT *
+FROM retail
+WHERE category = 'Beauty';
+Find Sales for a Particular Customer
+SELECT *
+FROM retail
+WHERE customer_id = 1;
+Sort Transactions by Total Sale
+SELECT *
+FROM retail
+ORDER BY total_sale DESC;
+Find the Highest Sale
+SELECT MAX(total_sale) AS highest_sale
+FROM retail;
+Find the Lowest Sale
+SELECT MIN(total_sale) AS lowest_sale
+FROM retail;
+Find the Average Sale
+SELECT ROUND(AVG(total_sale), 2) AS average_sale
+FROM retail;
+Calculate Total Sales
+SELECT SUM(total_sale) AS total_sales
+FROM retail;
+SQL Concepts Used
+Database Creation
+Table Creation
+DESCRIBE
+SELECT
+WHERE
+DISTINCT
+COUNT()
+COUNT(DISTINCT)
+SUM()
+AVG()
+MIN()
+MAX()
+ROUND()
+GROUP BY
+ORDER BY
+LIMIT
+CASE
+IS NULL
+DATE_FORMAT()
+YEAR()
+MONTH()
+HOUR()
+Subqueries
+Window Functions
+RANK()
+PARTITION BY
+Aggregate Functions
+Filtering
+Sorting
+Data Exploration
+Data Quality Checking
+Findings
+Customer Demographics: The dataset includes customers from different age groups and genders, with purchases distributed across different product categories.
+Category Performance: The analysis helps compare total sales and order counts across product categories.
+High-Value Transactions: Transactions with a total sale amount greater than 1000 can be identified for further analysis.
+Sales Trends: Monthly average sales can be analyzed to identify the highest-performing month in each year.
+Customer Insights: The analysis identifies the top 5 customers based on their total sales.
+Unique Customers: The number of unique customers purchasing from each category can be identified.
+Time-Based Analysis: Orders can be grouped into Morning, Afternoon, and Evening shifts to understand customer purchasing patterns.
+Reports
+Sales Summary: A detailed report summarizing total sales and order counts for each category.
+Trend Analysis: Analysis of average sales across different months and years.
+Customer Insights: Reports on top customers and unique customer counts by category.
+Transaction Analysis: Analysis of high-value transactions and transaction distribution by gender and category.
+Shift Analysis: Analysis of the number of orders during different times of the day.
+Conclusion
+
+This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data exploration, data quality checking, and business-driven SQL queries.
+
+The project helped me gain practical experience in using MySQL to analyze retail sales data and answer real-world business questions.
+
+Through this project, I practiced SQL concepts such as filtering, aggregation, grouping, sorting, date and time functions, subqueries, and window functions.
+
+How to Use
+Clone the Repository: Clone this project repository from GitHub.
+Set Up the Database: Open MySQL Workbench and run the database and table creation queries provided in this README.
+Import the Dataset: Import the provided CSV dataset into the retail table.
+Run the Queries: Use the SQL queries provided in this README to perform the analysis.
+Explore and Modify: Feel free to modify the queries to explore different aspects of the dataset or answer additional business questions.
+Repository Structure
+retail-sales-analysis-sql-project/
+│
+├── README.md
+├── SQL - Retail Sales Analysis_utf .csv
+└── retail sales analysis sql project.sql
+Tools Used
+MySQL
+MySQL Workbench
+SQL
+GitHub
+CSV Dataset
+GitHub Repository
+
+This project is available on GitHub:
+
+https://github.com/Bhavani22246/retail-sales-analysis-sql-project
+
+Author - Bhavani Kulkarni
+
+This project is part of my portfolio, showcasing the SQL skills I have developed as part of my Data Analytics learning journey.
+
+The project demonstrates my ability to work with a retail dataset, perform data exploration, use SQL functions, analyze customer and sales data, and solve business-oriented questions using MySQL.
+
+Thank you for checking out my project!
 USE sql_project_p1;
 
 2. Table Creation
